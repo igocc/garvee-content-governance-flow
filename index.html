@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>独立站关键词与商品页 AI 落地流程｜业务侧 × 产品侧</title>
+  <style>
+    :root {
+      --ink: #162033; --muted: #5f6b7d; --line: #d9e0ea; --paper: #fff; --canvas: #f4f6f8;
+      --business: #b45309; --business-soft: #fff7ed; --product: #075985; --product-soft: #eef8ff;
+      --pass: #137a4b; --pass-soft: #edfbf3; --block: #bd2c2c; --block-soft: #fff1f1;
+      --decision: #a16207; --decision-soft: #fff9db; --shared: #5b4aa8; --shared-soft: #f5f2ff;
+      --radius: 14px; --shadow: 0 1px 2px rgba(25,35,50,.05);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); line-height: 1.55; }
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid rgba(27,111,174,.28); outline-offset: 3px; }
+    .topbar { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.94); backdrop-filter: blur(12px); }
+    .topbar__inner, main { width: min(1500px, calc(100% - 32px)); margin-inline: auto; }
+    .topbar__inner { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand__mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #9cc4dc; border-radius: 9px; background: var(--product-soft); color: var(--product); font-weight: 850; }
+    .brand strong { display: block; font-size: 14px; }
+    .brand span { display: block; color: var(--muted); font-size: 12px; }
+    .print-button { min-height: 40px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--ink); cursor: pointer; }
+    main { padding: 38px 0 64px; }
+    .hero { display: grid; grid-template-columns: minmax(0,1fr) minmax(310px,420px); gap: 28px; align-items: end; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 8px; color: var(--product); font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0; max-width: 1000px; font-size: clamp(30px,4.4vw,54px); line-height: 1.08; letter-spacing: -.04em; }
+    .hero__lead { margin: 14px 0 0; max-width: 940px; color: var(--muted); font-size: 16px; }
+    .expert-callout { padding: 18px 20px; border-left: 4px solid var(--shared); background: var(--shared-soft); }
+    .expert-callout strong { display: block; margin-bottom: 5px; }
+    .expert-callout p { margin: 0; color: #51477d; font-size: 14px; }
+    .boundary { display: grid; grid-template-columns: 1fr auto 1fr; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); }
+    .boundary__side { padding: 18px 20px; }
+    .boundary__side.business { background: var(--business-soft); }
+    .boundary__side.product { background: var(--product-soft); }
+    .boundary__side strong { display: block; margin-bottom: 5px; }
+    .boundary__side p { margin: 0; color: var(--muted); font-size: 14px; }
+    .boundary__bridge { width: 170px; display: grid; place-items: center; padding: 14px; border-inline: 1px solid var(--line); color: var(--shared); text-align: center; font-size: 13px; font-weight: 800; }
+    .view-switch { position: sticky; top: 76px; z-index: 10; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-width: 680px; margin: 0 auto 18px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.94); backdrop-filter: blur(12px); box-shadow: var(--shadow); }
+    .view-tab { min-height: 46px; padding: 9px 16px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 750; }
+    .view-tab[data-view="business"][aria-selected="true"] { background: var(--business-soft); color: var(--business); }
+    .view-tab[data-view="product"][aria-selected="true"] { background: var(--product-soft); color: var(--product); }
+    .view[hidden] { display: none; }
+    .view { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); }
+    .view__header { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: end; padding: 24px 26px 20px; border-bottom: 1px solid var(--line); }
+    .view--business .view__header { background: var(--business-soft); }
+    .view--product .view__header { background: var(--product-soft); }
+    .view__kicker { margin: 0 0 5px; font-size: 12px; font-weight: 850; letter-spacing: .08em; }
+    .view--business .view__kicker { color: var(--business); }
+    .view--product .view__kicker { color: var(--product); }
+    .view h2 { margin: 0; font-size: clamp(24px,3vw,34px); letter-spacing: -.025em; }
+    .view__header p { margin: 8px 0 0; max-width: 900px; color: var(--muted); }
+    .owner-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; max-width: 430px; }
+    .chip { padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.78); color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .flow-wrap { overflow-x: auto; padding: 28px 24px 34px; background: linear-gradient(#edf1f5 1px,transparent 1px), linear-gradient(90deg,#edf1f5 1px,transparent 1px), #fbfcfd; background-size: 24px 24px; }
+    .flow { min-width: 1380px; display: grid; grid-template-columns: repeat(7,minmax(170px,1fr)); align-items: stretch; gap: 30px; }
+    .flow-step { position: relative; min-height: 430px; display: flex; flex-direction: column; border: 1px solid var(--line); border-top-width: 5px; border-radius: 12px; background: var(--paper); box-shadow: 0 8px 24px rgba(30,42,58,.07); }
+    .view--business .flow-step { border-top-color: var(--business); }
+    .view--product .flow-step { border-top-color: var(--product); }
+    .flow-step:not(:last-child)::after { content: ""; position: absolute; top: 52px; right: -23px; width: 15px; height: 15px; border-top: 3px solid #7c8797; border-right: 3px solid #7c8797; transform: rotate(45deg); }
+    .step-head { padding: 16px 16px 13px; border-bottom: 1px solid var(--line); }
+    .step-no { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-bottom: 10px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 850; }
+    .view--business .step-no { background: var(--business); }
+    .view--product .step-no { background: var(--product); }
+    .step-head h3 { margin: 0; font-size: 17px; line-height: 1.28; }
+    .step-head .owner { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .step-body { display: flex; flex: 1; flex-direction: column; padding: 14px 16px 16px; }
+    .step-body h4 { margin: 0 0 7px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .step-body ul { margin: 0; padding-left: 18px; font-size: 13px; }
+    .step-body li + li { margin-top: 6px; }
+    .deliverable { margin-top: auto; padding-top: 14px; }
+    .deliverable div { padding: 10px 11px; border-left: 3px solid var(--shared); background: var(--shared-soft); color: #50457d; font-size: 12px; }
+    .gate { margin: 18px 24px 0; display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: stretch; overflow: hidden; border: 1px solid #e8cf77; border-radius: 12px; background: var(--decision-soft); }
+    .gate__question { padding: 17px 20px; }
+    .gate__question strong { display: block; color: var(--decision); }
+    .gate__question p { margin: 5px 0 0; color: #725d1a; font-size: 13px; }
+    .gate__answer { width: 255px; padding: 15px 18px; }
+    .gate__answer.pass { border-left: 1px solid #e8cf77; background: var(--pass-soft); color: var(--pass); }
+    .gate__answer.block { border-left: 1px solid #e8cf77; background: var(--block-soft); color: var(--block); }
+    .gate__answer span { display: block; font-size: 11px; font-weight: 850; letter-spacing: .06em; }
+    .gate__answer p { margin: 4px 0 0; font-size: 13px; }
+    .standards { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1px; border-top: 1px solid var(--line); background: var(--line); }
+    .standard { padding: 18px 20px; background: var(--paper); }
+    .standard strong { display: block; margin-bottom: 5px; font-size: 14px; }
+    .standard p { margin: 0; color: var(--muted); font-size: 12px; }
+    .handoff { margin-top: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); }
+    .handoff__header { padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .handoff__header h2 { margin: 0; font-size: 24px; }
+    .handoff__header p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .handoff-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--line); }
+    .handoff-card { padding: 20px; background: var(--paper); }
+    .handoff-card.business { border-top: 4px solid var(--business); }
+    .handoff-card.product { border-top: 4px solid var(--product); }
+    .handoff-card.shared { border-top: 4px solid var(--shared); }
+    .handoff-card h3 { margin: 0 0 10px; font-size: 16px; }
+    .handoff-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+    .handoff-card li + li { margin-top: 7px; }
+    .expert-notes { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 24px; }
+    .expert-note { padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .expert-note strong { display: block; margin-bottom: 6px; }
+    .expert-note p { margin: 0; color: var(--muted); font-size: 13px; }
+    @media (max-width:1050px) { .hero { grid-template-columns: 1fr; } .boundary { grid-template-columns: 1fr; } .boundary__bridge { width: auto; border: 0; border-block: 1px solid var(--line); } .standards,.handoff-grid { grid-template-columns: 1fr 1fr; } .expert-notes { grid-template-columns: 1fr; } .gate { grid-template-columns: 1fr 1fr; } .gate__question { grid-column: 1 / -1; } .gate__answer { width: auto; } }
+    @media (max-width:700px) { .topbar__inner,main { width: min(100% - 20px,1500px); } .brand span { display: none; } main { padding-top: 25px; } .view-switch { top: 72px; } .view__header { grid-template-columns: 1fr; padding: 20px; } .owner-chips { justify-content: flex-start; } .flow-wrap { overflow: visible; padding: 20px 14px 26px; } .flow { min-width: 0; grid-template-columns: 1fr; gap: 34px; } .flow-step { min-height: 0; } .flow-step:not(:last-child)::after { top: auto; right: 50%; bottom: -24px; transform: translateX(50%) rotate(135deg); } .gate { grid-template-columns: 1fr; margin: 14px; } .gate__question { grid-column: auto; } .gate__answer.pass,.gate__answer.block { border-left: 0; border-top: 1px solid #e8cf77; } .standards,.handoff-grid { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior: auto; } }
+    @media print { .topbar,.view-switch { display: none!important; } body { background: #fff; } main { width: 100%; padding: 0; } .view[hidden] { display: block; break-before: page; margin-top: 24px; } .flow-wrap { overflow: visible; } .flow { min-width: 0; grid-template-columns: repeat(4,1fr); } .flow-step { min-height: 0; break-inside: avoid; } .flow-step::after { display: none; } .gate,.handoff,.expert-note,.view { break-inside: avoid; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="topbar__inner"><div class="brand"><div class="brand__mark" aria-hidden="true">G</div><div><strong>GARVEE 独立站内容治理</strong><span>业务侧 × 产品侧双视角执行流程</span></div></div><button class="print-button" type="button" id="printButton">打印／导出 PDF</button></div></header>
+  <main>
+    <section class="hero">
+      <div><p class="eyebrow">Senior expert operating model</p><h1>关键词与商品页 AI 落地，不是写作项目，而是治理系统</h1><p class="hero__lead">业务侧决定“说什么、先做什么、放在哪个页面”；产品侧保证“系统只能基于什么事实说、何时必须停止、如何追溯和回滚”。两侧通过版本化资产、异常任务和放量指标完成闭环。</p></div>
+      <aside class="expert-callout"><strong>核心判断</strong><p>原规范真正的主线不是“AI 批量写文案”，而是“已确认事实进入生成，异常自动阻断，人工结果必须回写，系统按类目逐步放量”。</p></aside>
+    </section>
+    <section class="boundary" aria-label="业务与产品责任边界">
+      <div class="boundary__side business"><strong>业务侧负责：内容决策权</strong><p>类目优先级、关键词适用性、页面意图、内容主题、语言质量、评价与 QA 运营节奏。</p></div>
+      <div class="boundary__bridge">以 SKU、规格、evidence_id、模板版本和发布批次为共同契约</div>
+      <div class="boundary__side product"><strong>产品侧负责：系统约束力</strong><p>主数据、证据链、字段与规则、生成编排、异常阻断、审核状态、批次发布、回滚和指标。</p></div>
+    </section>
+    <div class="view-switch" role="tablist" aria-label="切换业务侧或产品侧流程">
+      <button class="view-tab" type="button" role="tab" id="tab-business" data-view="business" aria-controls="view-business" aria-selected="true">业务侧视角</button>
+      <button class="view-tab" type="button" role="tab" id="tab-product" data-view="product" aria-controls="view-product" aria-selected="false">产品侧视角</button>
+    </div>
+
+    <section class="view view--business" id="view-business" role="tabpanel" aria-labelledby="tab-business">
+      <header class="view__header"><div><p class="view__kicker">BUSINESS OPERATING FLOW</p><h2>业务侧：从类目选择到内容增长闭环</h2><p>交付重点不是稿件数量，而是可复用的品类资产、经批准的关键词与事实、清晰的页面任务，以及能反向推动商品资料和页面改进的反馈机制。</p></div><div class="owner-chips"><span class="chip">品类运营</span><span class="chip">搜索优化</span><span class="chip">文案</span><span class="chip">设计</span><span class="chip">运营</span><span class="chip">客服</span><span class="chip">产品负责人</span></div></header>
+      <div class="gate"><div class="gate__question"><strong>启动闸门：业务资产是否具备？</strong><p>试点类目、SKU 清单、品类词典、标题/五点模板、特点到价值映射和商品事实包必须有负责人和版本。</p></div><div class="gate__answer pass"><span>YES</span><p>进入试点闭环，所有结果先人工复核。</p></div><div class="gate__answer block"><span>NO</span><p>仅允许单条测试；补资产，不得批量发布。</p></div></div>
+      <div class="flow-wrap"><div class="flow" aria-label="业务侧七步流程">
+        <article class="flow-step"><div class="step-head"><span class="step-no">01</span><h3>确定试点与业务优先级</h3><p class="owner">Owner：品类运营＋运营</p></div><div class="step-body"><h4>关键动作</h4><ul><li>选择 1–2 个优先三级类目</li><li>抽取 30–50 个覆盖复杂场景的 SKU</li><li>按新上架、重点销售、已有流量、普通老品排序</li></ul><div class="deliverable"><h4>交付物</h4><div>试点 SKU 清单＋内容优先级＋负责人</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">02</span><h3>建立类目内容资产</h3><p class="owner">Owner：品类运营＋搜索优化＋文案</p></div><div class="step-body"><h4>关键动作</h4><ul><li>建立词典、同义/近义关系和使用限制</li><li>定义标题槽位、title_priority 与五点主题</li><li>建立“特点→动作→用户帮助→条件”映射</li></ul><div class="deliverable"><h4>交付物</h4><div>品类词典 v1＋类目模板＋价值映射</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">03</span><h3>关键词校准与页面分配</h3><p class="owner">Owner：搜索优化＋品类运营＋产品负责人</p></div><div class="step-body"><h4>关键动作</h4><ul><li>先判断对象、范围、强度和替换后事实是否变化</li><li>逐 SKU 判定适用／不适用／待校准</li><li>划分 S/A 级、主辅角色与分类页/商品页/博客</li></ul><div class="deliverable"><h4>交付物</h4><div>批准关键词包＋页面承接关系＋未用原因</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">04</span><h3>内容策划与 AI 生成</h3><p class="owner">Owner：文案＋品类运营</p></div><div class="step-body"><h4>关键动作</h4><ul><li>优先复用现有 AI 策划案，不建平行人工流程</li><li>生成标题、五点、描述、参数、SEO、图片说明和 FAQ</li><li>只使用已确认事实和已批准关键词</li></ul><div class="deliverable"><h4>交付物</h4><div>页面草稿＋used/unused keywords＋evidence_ids</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">05</span><h3>业务审核与页面验收</h3><p class="owner">Owner：文案＋运营＋设计＋产品负责人</p></div><div class="step-body"><h4>关键动作</h4><ul><li>产品核事实与规格范围</li><li>文案核自然表达、字符数和禁用承诺</li><li>运营核关键词、页面位置与移动端；设计核图文一致</li></ul><div class="deliverable"><h4>交付物</h4><div>可发布／退回修改／待资料／禁用状态</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">06</span><h3>发布与评价／QA 运营</h3><p class="owner">Owner：运营＋客服</p></div><div class="step-body"><h4>关键动作</h4><ul><li>按批次发布，保留发布前版本</li><li>真实 UGC、授权第三方、品牌自建评价分库分标识</li><li>Ask a Question 进入清洗、证据检索、审核队列</li></ul><div class="deliverable"><h4>交付物</h4><div>发布批次＋来源标签＋UGC/QA 任务队列</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">07</span><h3>复盘并回写业务资产</h3><p class="owner">Owner：搜索优化＋运营＋客服＋品类运营</p></div><div class="step-body"><h4>关键动作</h4><ul><li>每 28 天复盘 Search Console 与页面转化</li><li>每月按 source_type 看 UGC、举报、帮助率和同步失败</li><li>把高频问题转为资料、模板、页面或产品改进任务</li></ul><div class="deliverable"><h4>回流</h4><div>更新词典／模板／页面优先级，进入下一轮</div></div></div></article>
+      </div></div>
+      <div class="standards"><div class="standard"><strong>绝不以热度推翻事实</strong><p>热度只在同等适用词之间排序；不适用词再热也不能使用。</p></div><div class="standard"><strong>绝不为凑数量造内容</strong><p>资料不足时减少 FAQ、删除体验好处或切换描述形式，不编造。</p></div><div class="standard"><strong>品牌自建评价必须亮明来源</strong><p>不得标 Verified Purchase，不计入真实顾客评分与真实 UGC 数。</p></div><div class="standard"><strong>人工结果必须回写</strong><p>不能只在最终稿里手改，否则同类 SKU 会重复出错。</p></div></div>
+    </section>
+
+    <section class="view view--product" id="view-product" role="tabpanel" aria-labelledby="tab-product" hidden>
+      <header class="view__header"><div><p class="view__kicker">PRODUCT & SYSTEM FLOW</p><h2>产品侧：从数据可得性到可控放量</h2><p>产品侧的核心交付不是提示词，而是可演示、可追溯、可阻断、可回滚的生产系统。每个输出必须能回答：用了什么字段、哪个版本、触发了什么规则、谁确认、如何撤回。</p></div><div class="owner-chips"><span class="chip">产品负责人</span><span class="chip">产品经理</span><span class="chip">开发</span><span class="chip">系统与数据</span><span class="chip">QA</span><span class="chip">内容平台</span></div></header>
+      <div class="gate"><div class="gate__question"><strong>数据闸门：关键字段是否 100% 完整且无冲突？</strong><p>value、unit、scope、variant、兼容范围、evidence_id 和资料版本任何一项缺失，都必须输出 blocking_reason。</p></div><div class="gate__answer pass"><span>YES</span><p>允许进入生成、自动检查和审核队列。</p></div><div class="gate__answer block"><span>NO</span><p>创建补资料任务；停止相关标题、五点、参数或 FAQ。</p></div></div>
+      <div class="flow-wrap"><div class="flow" aria-label="产品侧七步流程">
+        <article class="flow-step"><div class="step-head"><span class="step-no">01</span><h3>盘点现有系统与 AI 策划案</h3><p class="owner">Owner：产品经理＋系统负责人</p></div><div class="step-body"><h4>关键动作</h4><ul><li>核对现有输入字段、卖点排序和历史 SKU 范围</li><li>评估事实追溯、SEO 输入、类目配置、异常回退</li><li>优先补现有流程，不另建难维护的平行系统</li></ul><div class="deliverable"><h4>交付物</h4><div>复用清单＋能力差距＋改造边界</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">02</span><h3>输出数据可得性报告</h3><p class="owner">Owner：系统与数据＋产品负责人</p></div><div class="step-body"><h4>关键动作</h4><ul><li>按类目计算关键字段完整率，不能用整体平均掩盖问题</li><li>区分商品与 variant、额定与峰值、单只与整套</li><li>校验说明书、兼容、包装、授权和数据版本</li></ul><div class="deliverable"><h4>交付物</h4><div>字段映射＋完整率＋缺失/冲突任务</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">03</span><h3>建立标准数据合同</h3><p class="owner">Owner：产品经理＋数据架构</p></div><div class="step-body"><h4>四类输入包</h4><ul><li>商品事实包：参数、scope、规格、证据</li><li>关键词包：S/A、角色、位置、热度快照</li><li>类目内容包：槽位、主题、价值映射</li><li>渠道规则包：位置、字符、禁用词、图片编号</li></ul><div class="deliverable"><h4>交付物</h4><div>版本化 schema＋状态机＋追溯字段</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">04</span><h3>配置规则、模板与评分引擎</h3><p class="owner">Owner：产品＋系统＋业务配置人</p></div><div class="step-body"><h4>关键能力</h4><ul><li>关系判断 confidence 阈值与人工转交</li><li>标题候选分：40% 影响＋30% 需求＋20% 区分＋10% 完整</li><li>按三级类目配置必填槽位和五点主题</li></ul><div class="deliverable"><h4>交付物</h4><div>规则版本＋模板版本＋可复算分数</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">05</span><h3>编排生成与自动阻断</h3><p class="owner">Owner：AI 产品＋开发</p></div><div class="step-body"><h4>流水线</h4><ul><li>取词→去重→切分→匹配→校准→输入包→生成</li><li>自动检查字符、重复、禁用词、单位、规格和跨位置一致</li><li>AI 越界使用事实或改变数值含义时直接失败</li></ul><div class="deliverable"><h4>异常输出</h4><div>blocking_reason＋missing_fields＋责任人＋截止时间</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">06</span><h3>审核、批次发布与回滚</h3><p class="owner">Owner：系统与数据＋QA＋运营平台</p></div><div class="step-body"><h4>关键能力</h4><ul><li>统一待资料、待审核、退回、可发布、已发布状态</li><li>保存字段、规则、模板、模型和发布前版本</li><li>同类事实错误可暂停并回滚整批</li></ul><div class="deliverable"><h4>交付物</h4><div>审核日志＋发布批次＋回滚版本</div></div></div></article>
+        <article class="flow-step"><div class="step-head"><span class="step-no">07</span><h3>试点验收与有限放量</h3><p class="owner">Owner：产品负责人＋类目负责人</p></div><div class="step-body"><h4>放量门槛</h4><ul><li>同类目连续两轮，每轮不少于 50 个样本</li><li>商品事实准确率 100%</li><li>词根分类 ≥98%；缺资料拦截与语言通过 ≥95%</li></ul><div class="deliverable"><h4>结论</h4><div>有限放量／继续修正规则／停止扩批</div></div></div></article>
+      </div></div>
+      <div class="standards"><div class="standard"><strong>提示词不等于系统交付</strong><p>没有字段、状态、追溯、阻断和回滚能力，就不能称为落地。</p></div><div class="standard"><strong>高置信度不等于商品事实</strong><p>关系判断再确定，也必须对每个 SKU 单独核对适用性。</p></div><div class="standard"><strong>来源必须分流</strong><p>ugc、third_party、brand_created、test_data 必须分库、分标签、分统计。</p></div><div class="standard"><strong>高风险字段长期人工放行</strong><p>数值、兼容、安全、认证与比较内容不能因模型稳定就默认自动发布。</p></div></div>
+    </section>
+
+    <section class="handoff" aria-labelledby="handoffTitle"><header class="handoff__header"><h2 id="handoffTitle">两侧交接协议：没有这些交付物，不进入下一环节</h2><p>把“口头确认”变成结构化、版本化、可追溯的系统输入，才能避免业务和产品在发布前反复扯皮。</p></header><div class="handoff-grid">
+      <article class="handoff-card business"><h3>业务侧交给产品侧</h3><ul><li>试点类目、SKU 与业务优先级</li><li>品类词典、S/A 规则、页面意图和承接关系</li><li>标题/五点模板、价值映射、字符与禁用规则</li><li>评价与 QA 的来源、节奏、展示和运营规则</li></ul></article>
+      <article class="handoff-card product"><h3>产品侧交给业务侧</h3><ul><li>数据可得性报告和缺失/冲突任务</li><li>已评分候选、使用/未使用关键词及原因</li><li>草稿、证据、规格范围、警告与模型版本</li><li>自动检查结果、审核状态、批次与回滚点</li></ul></article>
+      <article class="handoff-card shared"><h3>共同放行的决策</h3><ul><li>商品事实与适用规格是否准确</li><li>关键字段缺失是否已被系统拦截</li><li>两轮试点指标是否达到有限放量门槛</li><li>高风险字段是否继续保留人工审核</li></ul></article>
+    </div></section>
+    <section class="expert-notes" aria-label="专家结论"><article class="expert-note"><strong>1. 先治理资产，再追求生成效率</strong><p>没有词典、类目模板、价值映射和商品事实包，批量生成只会放大错误。</p></article><article class="expert-note"><strong>2. 异常处理能力比正常生成更重要</strong><p>能识别缺资料、冲突和范围不明并自动停止，才是系统可信度的核心。</p></article><article class="expert-note"><strong>3. 放量应按类目，不按全站平均</strong><p>不同三级类目的字段、用词和风险差异很大，整体平均值会掩盖局部失控。</p></article></section>
+  </main>
+  <script>
+    (() => {
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const views = [...document.querySelectorAll('[role="tabpanel"]')];
+      function selectView(tab, focus = false) {
+        const target = tab.getAttribute('aria-controls');
+        tabs.forEach(item => { const active = item === tab; item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1; });
+        views.forEach(view => { view.hidden = view.id !== target; });
+        if (focus) tab.focus();
+      }
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectView(tab));
+        tab.addEventListener('keydown', event => {
+          if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+          event.preventDefault();
+          const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+          selectView(next, true);
+        });
+      });
+      document.getElementById('printButton').addEventListener('click', () => window.print());
+    })();
+  </script>
+</body>
+</html>
